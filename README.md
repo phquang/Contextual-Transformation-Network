@@ -1,7 +1,7 @@
-# Bilevel Continual Learning
+# CONTEXTUALTRANSFORMATIONNETWORKS FORONLINECONTINUALLEARNING
 
-This project contains the implementation of the paper: Bilevel Continual Learning (arXiv). 
-A dual memory management strategy: a replay memory and an evaluation set. The model learns new samples by experience replay with the replay memory such that in can generalize to the evaluation set.
+This project contains the implementation of the paper: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). 
+CTN proposes a novel network design with a controller that can efficiently extract task-specific features from a base network. Both the base network and the controller have access to their own memory units and are joinly trained via a bilevel optimization strategy.
 
 # Cite
 
