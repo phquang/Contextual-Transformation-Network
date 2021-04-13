@@ -1,18 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-################################################################################
-# Copyright (c) 2017. Vincenzo Lomonaco. All rights reserved.                  #
-# See the accompanying LICENSE file for terms.                                 #
-#                                                                              #
-# Date: 24-11-2017                                                             #
-# Author: Vincenzo Lomonaco                                                    #
-# E-mail: vincenzo.lomonaco@unibo.it                                           #
-# Website: vincenzolomonaco.com                                                #
-################################################################################
-
-""" Data Loader for the CORe50 Dataset """
-
 # Python 2-3 compatible
 from __future__ import print_function
 from __future__ import division
@@ -69,9 +54,7 @@ def eval_tasks(model, tasks, args = None):
         t = i
         x = task[1]
         y = task[2].long()
-        #x = x / 255.0
         rt = 0
-        
         eval_bs = 256
         with torch.no_grad():
             for b_from in range(0, x.size(0), eval_bs):
@@ -174,21 +157,6 @@ if __name__ == "__main__":
     
     Model = importlib.import_module('model.' + args.model)
     model = Model.Net(n_inputs, n_outputs, n_tasks, args)
-    mem = 0
-    for attr, value in model.__dict__.items():
-        if isinstance(value, torch.cuda.FloatTensor) or isinstance(value, torch.cuda.LongTensor):
-            print(attr)
-            mem += value.size().numel()
-    if str(args.model) == 'ogd':
-        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
-        mem = int(args.n_memories) * n_tasks * N    
-    elif str(args.model) == 'kdr':
-        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
-        mem += N
-    elif str(args.model) == 'ewc':
-        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
-        mem = 2* int(n_tasks) * N
-    total_mem = mem* 4 / 1e6
     if str(args.model) not in ['ftml']:
         model = model.cuda()
     current_task = -1
@@ -228,14 +196,8 @@ if __name__ == "__main__":
         result_a.append(eval_tasks(model, x_te,args))
         result_t.append(current_task)
         
-    #result_a.append(eval_tasks(model, x_te))
-    #result_t.append(current_task)
     time_spent = time.time() - start_time
-    if args.lca < 0:
-        lca = [0]
     stats = confusion_matrix(torch.Tensor(result_t), torch.Tensor(result_a), torch.Tensor(lca),  fname +'.txt')
     one_liner = str(vars(args)) + ' # '
     one_liner += ' '.join(["%.3f" % stat for stat in stats])
     print(fname + ':' + one_liner + ' # ' + str(time_spent))
-    #model.on_train_end(stats[0].item(), stats[1].item())
-    torch.save(model.state_dict(), './relation.pt')
