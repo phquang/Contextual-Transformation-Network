@@ -19,11 +19,12 @@ from __future__ import division
 from __future__ import absolute_import
 # other imports
 import numpy as np
+import sys
 import pickle as pkl
 import os
 import logging
 from hashlib import md5
-from PIL import Image
+#from PIL import Image
 import argparse
 import importlib
 import time
@@ -38,7 +39,7 @@ from tqdm import tqdm
 import uuid
 import os 
 import datetime
-
+import time
 def load_datasets(args):
     d_tr, d_te = torch.load(args.data_path + '/' + args.data_file)
     n_inputs = d_tr[0][1].size(1)
@@ -46,14 +47,15 @@ def load_datasets(args):
     for i in range(len(d_tr)):
         n_outputs = max(n_outputs, d_tr[i][2].max())
         n_outputs = max(n_outputs, d_te[i][2].max())
-    return d_tr, d_te, n_inputs, n_outputs + 1, len(d_tr)
+    
+    return d_tr, d_te, n_inputs, int(n_outputs) + 1, len(d_tr)
 
 def loader(x, y, batch_size = 32, use = 0.5):
     n_data = int(y.size(0) * use) if use <= 1 else int(use)
     print(n_data)
     idx = torch.randperm(y.size(0))[:n_data]
     xx = x[idx,:]
-    yy = y[idx]
+    yy = y[idx].long()
     train = torch.utils.data.TensorDataset(xx, yy.view(-1), idx)   
     loader_ = DataLoader(train, batch_size = batch_size, shuffle = False, num_workers =0)    
     return loader_
@@ -66,27 +68,26 @@ def eval_tasks(model, tasks, args = None):
     for i, task in enumerate(tasks):
         t = i
         x = task[1]
-        y = task[2]
+        y = task[2].long()
         #x = x / 255.0
         rt = 0
         
-        eval_bs = 128
-        #with torch.no_grad():
-        for b_from in range(0, x.size(0), eval_bs):
-            b_to = min(b_from + eval_bs, x.size(0) - 1)
-            if b_from == b_to:
-                xb = x[b_from].view(1, -1)
-                yb = torch.LongTensor([y[b_to]]).view(1, -1)
-            else:
-                xb = x[b_from:b_to]
-                yb = y[b_from:b_to]
-            xb = xb.cuda()
-            _, pb = torch.max(model(xb, t).data.cpu(), 1, keepdim=False)
-            
-            rt += (pb == yb).float().sum()
-
-        result.append(rt / x.size(0))
-
+        eval_bs = 256
+        with torch.no_grad():
+            for b_from in range(0, x.size(0), eval_bs):
+                b_to = min(b_from + eval_bs, x.size(0) - 1)
+                if b_from == b_to:
+                    xb = x[b_from].view(1, -1)
+                    yb = torch.LongTensor([y[b_to]]).view(1, -1)
+                else:
+                    xb = x[b_from:b_to]
+                    yb = y[b_from:b_to]
+                xb = xb.cuda()
+                _, pb = torch.max(model(xb, t).data.cpu(), 1, keepdim=False)
+                
+                rt += (pb == yb).float().sum()
+            result.append(rt / x.size(0))
+    print(result)
     return result
 
 if __name__ == "__main__":
@@ -108,7 +109,8 @@ if __name__ == "__main__":
     parser.add_argument('--memory_strength', default=0, type=float,
                         help='memory strength (meaning depends on memory)')
     parser.add_argument('--reg', default = 1., type = float)
-    parser.add_argument('--grad_sampling_sz', default = 256, type = int)
+    parser.add_argument('--grad_sampling_sz', default = 64, type = int)
+    parser.add_argument('--nh', default=100, type=int)
     ## training args
     parser.add_argument('--inner_steps', type=int, default=1)
     parser.add_argument('--n_epochs', type=int, default=1,
@@ -129,13 +131,16 @@ if __name__ == "__main__":
     parser.add_argument('--lca', type=int, default = -1)
     parser.add_argument('--beta', type=float, default=0.3)
     parser.add_argument('--keep_min', type=str, default='yes')
+    parser.add_argument('--emb_dim', type=int, default=16)
+    parser.add_argument('--n_val', type=float, default=0.2)
     ## logging args
     parser.add_argument('--save_path', type=str, default='results/',
                         help='save models at the end of training')
 
     parser.add_argument('--shuffle_tasks', type=str, default='no',
                         help='present tasks in order')
-
+    parser.add_argument('--sampling', type=str, default='rand')
+    parser.add_argument('--prefix', type=str, default='')
     ## mer
     parser.add_argument('--gamma', type=float, default=1)
     parser.add_argument('--replay_batch_size', type=int, default=128)
@@ -143,7 +148,7 @@ if __name__ == "__main__":
     ## ftml
     parser.add_argument('--adapt', type=str, default='no')
     parser.add_argument('--adapt_lr', type=float, default=0.1)
-    parser.add_argument('--n_meta', type=int, default=5)
+    parser.add_argument('--n_meta', type=int, default=1)
     args = parser.parse_args()
 
     args.cuda = True if args.cuda == 'yes' else False
@@ -154,7 +159,8 @@ if __name__ == "__main__":
     # fname and stuffs
     uid = uuid.uuid4().hex[:8]
     start_time = time.time()
-    fname = args.model + '_' + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    prefix = args.prefix + '_' if args.prefix is not '' else ''
+    fname = prefix  + args.model + '_' + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     fname += '_' + uid
     fname = os.path.join(args.save_path, fname)
 
@@ -165,8 +171,24 @@ if __name__ == "__main__":
     x_te = x_te[:n_tasks]
     print(n_tasks)
     # model
+    
     Model = importlib.import_module('model.' + args.model)
     model = Model.Net(n_inputs, n_outputs, n_tasks, args)
+    mem = 0
+    for attr, value in model.__dict__.items():
+        if isinstance(value, torch.cuda.FloatTensor) or isinstance(value, torch.cuda.LongTensor):
+            print(attr)
+            mem += value.size().numel()
+    if str(args.model) == 'ogd':
+        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
+        mem = int(args.n_memories) * n_tasks * N    
+    elif str(args.model) == 'kdr':
+        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
+        mem += N
+    elif str(args.model) == 'ewc':
+        N = sum(p.numel() for p in model.net.parameters() if p.requires_grad)
+        mem = 2* int(n_tasks) * N
+    total_mem = mem* 4 / 1e6
     if str(args.model) not in ['ftml']:
         model = model.cuda()
     current_task = -1
@@ -183,16 +205,26 @@ if __name__ == "__main__":
         for epoch in range(args.n_epochs):
             losses = 0.
             lca_counter = 0.
+            times = []
+            count = 0
             for x, y, idx in tqdm(taskLoader, ncols = 69, desc = desc):
+                count+=1
                 model.train()
                 if str(args.model) in ['lwf']:
                     info = [current_task]
                     info.append(idx)
+                start = time.time()
                 loss = model.observe(Variable(x).cuda(), info, Variable(y).cuda())
+                end = time.time()
+                times.append(end-start)
                 losses +=loss
                 lca_counter += 1
+                if i > 1 and count > 20:
+                    t_np = np.array(times)
+                    t_avg, t_stddev = np.average(t_np), np.std(t_np)
+                    
             model.on_epoch_end()
-        print('Task loss: {:.3f}'.format(losses/len(taskLoader)))
+            print('Task loss: {:.3f}'.format(losses/len(taskLoader)))
         result_a.append(eval_tasks(model, x_te,args))
         result_t.append(current_task)
         
@@ -206,3 +238,4 @@ if __name__ == "__main__":
     one_liner += ' '.join(["%.3f" % stat for stat in stats])
     print(fname + ':' + one_liner + ' # ' + str(time_spent))
     #model.on_train_end(stats[0].item(), stats[1].item())
+    torch.save(model.state_dict(), './relation.pt')
