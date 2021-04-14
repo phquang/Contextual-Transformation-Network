@@ -40,11 +40,9 @@ The provided script `scripts/run.sh` includes the best hyper-parameter cross-val
 |**temperature**| temperature of the softmax in knowledge distillation | e.g. `5`|
 |**lr**| (inner) learning rate | e.g. `0.1` |
 |**beta**| (outer) learning rate  | e.g. `0.3` |
-|**adapt**|  use adaptation at test time or not | e.g. `no` | 
-|**adapt_lr**| learning rate of the adaptation step | e.g. `0.001` | 
 |**inner_steps**| number of SGD udpates per samples | e.g. `2` | 
-|**n_meta**| number of meta update per samples | e.g. `2` |
-|**n_val**| percentage of the total memory used for the evaluation set (BCL-Dual) | e.g. `0.2` | 
+|**n_meta**| number of outer updates per samples | e.g. `2` |
+|**n_val**| percentage of the total memory used for the semantic memory (in CTN) | e.g. `0.2` | 
 |**replay_batch_size**| number of data in the memory used per experience replay step | e.g. `64` | 
 
 # Acknowledgement
