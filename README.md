@@ -32,14 +32,14 @@ The provided script `scripts/run.sh` includes the best hyper-parameter cross-val
 
 | Parameter           | Description                                                  | Values |
 | :------------------ | :----------------------------------------------------------- | :-------------------------------------------------------- |
-| **data_path** | path where the data will be saved | e.g. `data/` |
+| **data_path** | path where the data sets are saved | e.g. `data/` |
 | **data_file** | name of the data file | e.g. `mnist_permutations.pt` |
 | **use** | randomly use a subset of data. When `use < 1`, `use%` of the original data, when `use > 1`, select `use` samples from the data | e.g. `0.5` (select 50% of data), `1000` (select 1000 data samples) |
-|**n_memories**| number of data stored per task | e.g. `65` |
+|**n_memories**| number of data stored per task | e.g. `50` |
 |**memory_strength**| value of the regularizer's coefficient | e.g. `100` |
 |**temperature**| temperature of the softmax in knowledge distillation | e.g. `5`|
 |**lr**| (inner) learning rate | e.g. `0.1` |
-|**beta**| outer learning rate (BCL) | e.g. `0.3` |
+|**beta**| (outer) learning rate  | e.g. `0.3` |
 |**adapt**|  use adaptation at test time or not | e.g. `no` | 
 |**adapt_lr**| learning rate of the adaptation step | e.g. `0.001` | 
 |**inner_steps**| number of SGD udpates per samples | e.g. `2` | 
