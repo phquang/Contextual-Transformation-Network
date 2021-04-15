@@ -45,7 +45,7 @@ class Net(torch.nn.Module):
         self.bce = torch.nn.CrossEntropyLoss()
 
         if self.is_cifar:
-            self.nc_per_task = n_outputs / n_tasks
+            self.nc_per_task = int(n_outputs / n_tasks)
         else:
             self.nc_per_task = n_outputs
         # setup memories
@@ -110,7 +110,7 @@ class Net(torch.nn.Module):
         mem_feat = self.mem_feat[:t,:]
         sz = min(self.n_memories, self.sz)
         idx = np.random.choice(t* self.n_memories,sz, False)
-        t_idx = torch.from_numpy(idx / self.n_memories)
+        t_idx = torch.from_numpy(idx // self.n_memories)
         s_idx = torch.from_numpy( idx % self.n_memories)
 
         offsets = torch.tensor([self.compute_offsets(i) for i in t_idx]).cuda()
