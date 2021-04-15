@@ -6,7 +6,7 @@
 
 import torch
 from torch.autograd import Variable
-from .common import MLP, ResNet18, cCNN
+from .common import MLP, ResNet18
 from .resnet import ResNet18 as ResNet18Full
 import pdb
 import torch.nn as nn
