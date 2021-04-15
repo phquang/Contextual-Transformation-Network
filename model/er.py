@@ -57,7 +57,7 @@ class Net(torch.nn.Module):
         if 'cub' in args.data_file:
             self.memx = torch.FloatTensor(n_tasks, self.n_memories, 3, 224, 224)
         elif 'mini' in args.data_file:
-            self.memx = torch.FloatTensor(n_tasks, self.n_memories, 3, 128, 128)
+            self.memx = torch.FloatTensor(n_tasks, self.n_memories, 3, 84, 84)
         else:
             self.memx = torch.FloatTensor(n_tasks, self.n_memories, n_inputs)
         self.memy = torch.LongTensor(n_tasks, self.n_memories)
