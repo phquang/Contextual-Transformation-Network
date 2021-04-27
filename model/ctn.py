@@ -25,11 +25,13 @@ class Net(torch.nn.Module):
         self.reg = args.memory_strength
         self.temp = args.temperature
         # setup network
-        self.is_cifar = any(x in str(args.data_file) for x in ['cifar', 'cub', 'mini'])
+        self.is_cifar = any(x in str(args.data_file) for x in ['cifar', 'core', 'mini'])
         if 'cifar' in args.data_file or 'mini' in args.data_file:
             self.net = ContextNet18(n_outputs, task_emb = args.emb_dim , n_tasks = n_tasks)
         elif 'cub' in args.data_file:
             self.net = ResNet18Full(args.pretrained, n_outputs)
+        elif 'core' in args.data_file:
+            self.net = ContextNet18(num_classes = 50, nf = 64, n_tasks=10, task_emb=64)
         else:
             #self.net = MLP([n_inputs] + [nh] * nl + [n_outputs])
             self.net = ContextMLP(784,int(args.nh), n_out =10, task_emb = int(args.emb_dim), n_tasks = n_tasks)
@@ -60,7 +62,7 @@ class Net(torch.nn.Module):
         if 'cub' in args.data_file:
             self.memx = torch.FloatTensor(n_tasks, self.n_memories, 3, 224, 224)
             self.valx = torch.FloatTensor(n_tasks, self.n_val, 3, 224, 224)
-        elif 'mini' in args.data_file:
+        elif 'mini' in args.data_file or 'core' in args.data_file:
             self.memx = torch.FloatTensor(n_tasks, self.n_memories, 3, 84, 84)
             self.valx = torch.FloatTensor(n_tasks, self.n_val , 3, 84, 84)
             if self.n_memories > 75:
@@ -212,7 +214,6 @@ class Net(torch.nn.Module):
         meta_grad_init = [0 for _ in range(len(self.net.state_dict()))]
         #for _ in range(self.inner_steps):
         for _ in range(self.n_meta):
-            
             meta_grad = deepcopy(meta_grad_init)
             loss1 = torch.tensor(0.).cuda()
             loss2 = torch.tensor(0.).cuda()
@@ -222,14 +223,14 @@ class Net(torch.nn.Module):
             pred = self.forward(x,t)
         
             loss1 = self.bce(pred[:, offset1:offset2], y - offset1)
-            tt = t + 1
+            #tt = t + 1
             for i in range(self.inner_steps):
-                xx, yy, feat, mask, list_t = self.memory_sampling(tt)
-                pred_ = self.net(xx, list_t)
-                pred = torch.gather(pred_, 1, mask)
-                loss2 = self.bce(pred, yy)
-                loss3 = self.reg * self.kl(F.log_softmax(pred / self.temp, dim = 1), feat)
                 if t > 0:
+                    xx, yy, feat, mask, list_t = self.memory_sampling(t)
+                    pred_ = self.net(xx, list_t)
+                    pred = torch.gather(pred_, 1, mask)
+                    loss2 = self.bce(pred, yy)
+                    loss3 = self.reg * self.kl(F.log_softmax(pred / self.temp, dim = 1), feat)
                     loss = loss1 + loss2 + loss3
                 else:
                     loss = loss1
@@ -242,7 +243,7 @@ class Net(torch.nn.Module):
                     new_param = new_param - self.inner_lr * grad
                     param.data.copy_(new_param)
 
-            xval, yval, feat, mask, list_t = self.memory_sampling(tt, valid = True)
+            xval, yval, feat, mask, list_t = self.memory_sampling(t+1, valid = True)
             pred_ = self.net(xval, list_t)
             pred = torch.gather(pred_, 1, mask)
             outer_loss = self.bce(pred, yval)
@@ -258,4 +259,5 @@ class Net(torch.nn.Module):
             self.opt.step()
             #SGD update the CONTROLLER 
             self.zero_grad() 
+               
         return loss.item()
