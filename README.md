@@ -44,6 +44,6 @@ The provided script `scripts/run.sh` includes the best hyper-parameter cross-val
 |**replay_batch_size**| number of data in the memory used per experience replay step | e.g. `64` | 
 
 # Acknowledgement
-This project structure is based on the [GEM](https://github.com/facebookresearch/GradientEpisodicMemory) repository with additional methods, metrics and implementation improvements. For the CORe50 benchmark, we modify the data loader of [MIR](https://github.com/optimass/Maximally_Interfered_Retrieval)
+This project structure is based on the [GEM](https://github.com/facebookresearch/GradientEpisodicMemory) repository with additional methods, metrics and implementation improvements. For the CORe50 benchmark, we modify the data loader from [MIR](https://github.com/optimass/Maximally_Interfered_Retrieval).
 * https://github.com/facebookresearch/GradientEpisodicMemory
 * https://github.com/optimass/Maximally_Interfered_Retrieval
