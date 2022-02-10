@@ -1,6 +1,11 @@
 # CONTEXTUALTRANSFORMATIONNETWORKS FORONLINECONTINUALLEARNING
 
-This project contains the implementation of the paper: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). 
+This project contains the implementation of the following ICLR 2021 paper: 
+
+**Title:**: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). [[openreview]](https://openreview.net/forum?id=zx_uX-BO7CH), [[pdf]](https://openreview.net/pdf?id=zx_uX-BO7CH)
+
+**Authors:** [Quang Pham](https://sites.google.com/view/quangpham93), [Chenghao Liu](https://sites.google.com/view/liuchenghao/home), [Doyen Sahoo](https://scholar.google.com.sg/citations?user=A61jJD4AAAAJ&hl=en), and [Steven Hoi](https://sites.google.com/view/stevenhoi/home)
+
 CTN proposes a novel network design with a controller that can efficiently extract task-specific features from a base network. Both the base network and the controller have access to their own memory units and are joinly trained via a bilevel optimization strategy.
 
 ![CTN](CTN-framework.jpg)
