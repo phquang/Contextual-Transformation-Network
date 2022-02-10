@@ -3,8 +3,7 @@
 This project contains the implementation of the paper: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). 
 CTN proposes a novel network design with a controller that can efficiently extract task-specific features from a base network. Both the base network and the controller have access to their own memory units and are joinly trained via a bilevel optimization strategy.
 
-# Cite
-
+![CTN](CTN-framework.png)
 
 # Requirements
 - Pytorch 1.5.0
@@ -42,6 +41,17 @@ The provided script `scripts/run.sh` includes the best hyper-parameter cross-val
 |**n_meta**| number of outer updates per samples | e.g. `2` |
 |**n_val**| percentage of the total memory used for the semantic memory (in CTN) | e.g. `0.2` | 
 |**replay_batch_size**| number of data in the memory used per experience replay step | e.g. `64` | 
+
+# Cite
+If you found CTN useful for your research, please consider citing.
+```
+@inproceedings{pham2020contextual,
+  title={Contextual transformation networks for online continual learning},
+  author={Pham, Quang and Liu, Chenghao and Sahoo, Doyen and Steven, HOI},
+  booktitle={International Conference on Learning Representations},
+  year={2020}
+}
+```
 
 # Acknowledgement
 This project structure is based on the [GEM](https://github.com/facebookresearch/GradientEpisodicMemory) repository with additional methods, metrics and implementation improvements. For the CORe50 benchmark, we modify the data loader from [MIR](https://github.com/optimass/Maximally_Interfered_Retrieval).
