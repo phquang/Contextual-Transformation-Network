@@ -2,7 +2,7 @@
 
 This project contains the implementation of the following ICLR 2021 paper: 
 
-**Title:**: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). [[openreview]](https://openreview.net/forum?id=zx_uX-BO7CH), [[pdf]](https://openreview.net/pdf?id=zx_uX-BO7CH)
+**Title:** Contextual Transformation Networks for Online Continual Learning (ICLR 2021). [[openreview]](https://openreview.net/forum?id=zx_uX-BO7CH), [[pdf]](https://openreview.net/pdf?id=zx_uX-BO7CH).
 
 **Authors:** [Quang Pham](https://sites.google.com/view/quangpham93), [Chenghao Liu](https://sites.google.com/view/liuchenghao/home), [Doyen Sahoo](https://scholar.google.com.sg/citations?user=A61jJD4AAAAJ&hl=en), and [Steven Hoi](https://sites.google.com/view/stevenhoi/home)
 
