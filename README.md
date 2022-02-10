@@ -3,7 +3,7 @@
 This project contains the implementation of the paper: Contextual Transformation Networks for Online Continual Learning (ICLR 2021). 
 CTN proposes a novel network design with a controller that can efficiently extract task-specific features from a base network. Both the base network and the controller have access to their own memory units and are joinly trained via a bilevel optimization strategy.
 
-![CTN](CTN-framework.png)
+![CTN](CTN-framework.jpg)
 
 # Requirements
 - Pytorch 1.5.0
