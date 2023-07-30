@@ -54,7 +54,7 @@ If you found CTN useful for your research, please consider citing.
   title={Contextual transformation networks for online continual learning},
   author={Pham, Quang and Liu, Chenghao and Sahoo, Doyen and Steven, HOI},
   booktitle={International Conference on Learning Representations},
-  year={2020}
+  year={2021}
 }
 ```
 
